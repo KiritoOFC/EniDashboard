@@ -1,48 +1,274 @@
 javascript:(function(){
-if(document.getElementById('eni-chat-root'))return;
-const ST={t:null,w:null,p:null,m:false,msgs:[],view:'chat',supabaseUrl:'https://ypdlnkrgjwsczaulkcxo.supabase.co',anonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwZGxua3JnandzY3phdWxrY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjA4MzQsImV4cCI6MjA4OTA5NjgzNH0.UgQ7-EeKeDV6ANQ27SFhnH-YSz6VWn3KqWZGO8qDpnQ'};
-const THEME={bg:'linear-gradient(145deg, rgba(8,12,20,0.98), rgba(5,8,15,0.98))',card:'rgba(25,30,45,0.75)',accent:'#8b5cf6',accent2:'#d946ef',accent3:'#06b6d4',text:'#f8fafc',sub:'#94a3b8',border:'rgba(255,255,255,0.08)',glass:'backdrop-filter:blur(20px) saturate(180%)'};
-function intercept(t,w,p){let c=false;if(t&&t.startsWith('eyJ')&&t!==ST.t){ST.t=t;c=true}if(w&&w!==ST.w){ST.w=w;c=true}if(p&&/^[0-9a-f-]{36}$/i.test(p)&&p!==ST.p){ST.p=p;c=true}if(c)ui()}
-const oF=window.fetch;window.fetch=function(...a){const u=typeof a[0]==='string'?a[0]:a[0].url;const w=(u.match(/\/workspaces\/([a-z0-9_-]+)/i)||[])[1];const p=(u.match(/\/projects\/([0-9a-f-]{36})/i)||[])[1];const h=a[1]?.headers;let t=null;if(h instanceof Headers)t=h.get('authorization');else if(h)t=h['Authorization']||h['authorization'];if(t)t=t.replace('Bearer ','');intercept(t,w,p);return oF.apply(this,a)};
-async function sendMessageToLovable(token,projectId,message){try{const res=await fetch(`${ST.supabaseUrl}/functions/v1/send-message`,{method:'POST',headers:{'Content-Type':'application/json','apikey':ST.anonKey,'Authorization':`Bearer ${ST.anonKey}`},body:JSON.stringify({token,projectId,message})});const data=await res.json();return data}catch(e){return{success:false,error:'❌ Sem conexão'}}}
-async function createNewProject(token,workspaceId,description){try{const res=await fetch(`${ST.supabaseUrl}/functions/v1/create-new`,{method:'POST',headers:{'Content-Type':'application/json','apikey':ST.anonKey,'Authorization':`Bearer ${ST.anonKey}`},body:JSON.stringify({token,workspaceId,message:description})});const data=await res.json();return data}catch(e){return{success:false,error:'❌ Sem conexão'}}}
-function showToast(message,type){const t=document.createElement('div');t.className=`eni-toast ${type}`;t.innerHTML=`<span>${message}</span>`;document.body.appendChild(t);setTimeout(()=>t.classList.add('hide'),2500);setTimeout(()=>t.remove(),3000)}
-function updateMessages(){const c=document.getElementById('eni-msgs');if(c){c.innerHTML='';ST.msgs.forEach(m=>{const g=document.createElement('div');g.className=`eni-bubble ${m.r==='u'?'eni-user':'eni-bot'}`;g.innerHTML=`<div class="bubble-content">${escapeHtml(m.t)}</div>`;c.appendChild(g)});c.scrollTop=c.scrollHeight}}
-function escapeHtml(str){return str.replace(/[&<>]/g,function(m){if(m==='&')return'&amp;';if(m==='<')return'&lt;';if(m==='>')return'&gt;';return m})}
-function ui(){let r=document.getElementById('eni-chat-root');if(!r){r=document.createElement('div');r.id='eni-chat-root';document.body.appendChild(r);makeDraggable(r)}const ready=ST.t&&ST.w;const css=`#eni-chat-root{position:fixed;bottom:20px;right:20px;width:440px;max-height:85vh;background:${THEME.bg};${THEME.glass}border:1px solid ${THEME.border};border-radius:32px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.8),0 0 0 1px rgba(139,92,246,0.1);z-index:9999999;display:flex;flex-direction:column;font-family:'Inter','Poppins','Segoe UI',system-ui,sans-serif;color:${THEME.text};overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1)}#eni-chat-root.mini{width:64px;height:64px;border-radius:32px;cursor:pointer;background:linear-gradient(145deg,${THEME.accent},${THEME.accent2},${THEME.accent3});box-shadow:0 10px 30px -5px rgba(139,92,246,0.6)}#eni-chat-root.mini:hover{transform:scale(1.08)}.eni-header{padding:16px 20px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:space-between;cursor:move;border-bottom:1px solid ${THEME.border};backdrop-filter:blur(10px)}.eni-dots{display:flex;gap:12px}.eni-dot{width:13px;height:13px;border-radius:50%;transition:all 0.2s;cursor:pointer;position:relative}.eni-dot:hover{transform:scale(1.2)}.eni-dot.close{background:#ff5f57}.eni-dot.minimize{background:#febc2e}.eni-dot.maximize{background:#28c840}.eni-logo{font-size:11px;font-weight:800;letter-spacing:1px;background:linear-gradient(135deg,${THEME.accent},${THEME.accent2},${THEME.accent3});-webkit-background-clip:text;background-clip:text;color:transparent}.eni-content{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:20px}.eni-badge{font-size:10px;padding:6px 14px;border-radius:24px;background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(217,70,239,0.2));color:${THEME.accent};font-weight:700;display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;border:1px solid rgba(139,92,246,0.3);backdrop-filter:blur(4px)}.eni-badge::before{content:'✨';font-size:12px}.eni-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;margin-bottom:16px;padding-right:6px;max-height:400px;min-height:250px}.eni-messages::-webkit-scrollbar{width:4px}.eni-messages::-webkit-scrollbar-track{background:rgba(255,255,255,0.05);border-radius:10px}.eni-messages::-webkit-scrollbar-thumb{background:linear-gradient(135deg,${THEME.accent},${THEME.accent2});border-radius:10px}.eni-bubble{padding:10px 14px;border-radius:20px;font-size:13px;max-width:85%;line-height:1.45;animation:slideIn 0.3s ease;word-wrap:break-word;transition:transform 0.2s}.eni-bubble:hover{transform:translateX(2px)}.bubble-content{display:block}.eni-user{background:linear-gradient(135deg,${THEME.accent},${THEME.accent2});color:white;border-bottom-right-radius:5px;box-shadow:0 2px 8px rgba(139,92,246,0.3)}.eni-bot{background:${THEME.card};border:1px solid ${THEME.border};border-bottom-left-radius:5px;backdrop-filter:blur(4px)}.eni-input-area{background:${THEME.card};padding:12px;border-radius:24px;border:1px solid ${THEME.border};transition:all 0.2s;backdrop-filter:blur(4px)}.eni-input-area:focus-within{border-color:${THEME.accent};box-shadow:0 0 0 3px rgba(139,92,246,0.15);transform:translateY(-1px)}.eni-input-area textarea{background:none;border:none;color:white;font-size:13px;resize:none;outline:none;width:100%;height:40px;font-family:inherit}.eni-input-area textarea::placeholder{color:${THEME.sub};font-size:12px}.eni-send-btn{background:linear-gradient(135deg,${THEME.accent},${THEME.accent2},${THEME.accent3});border:none;color:white;border-radius:18px;padding:8px 24px;cursor:pointer;font-weight:700;font-size:12px;transition:all 0.2s;margin-top:8px;box-shadow:0 2px 8px rgba(139,92,246,0.3)}.eni-send-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(139,92,246,0.5)}.eni-send-btn:disabled{opacity:0.5;transform:none;cursor:not-allowed}.eni-tabs{display:flex;gap:24px;margin-bottom:20px;border-bottom:1px solid ${THEME.border}}.eni-tab{font-size:13px;padding:8px 0;cursor:pointer;opacity:0.5;transition:all 0.2s;position:relative;font-weight:600}.eni-tab.active{opacity:1;background:linear-gradient(135deg,${THEME.accent},${THEME.accent2});-webkit-background-clip:text;background-clip:text;color:transparent}.eni-tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:linear-gradient(90deg,${THEME.accent},${THEME.accent2},${THEME.accent3})}.eni-create-btn{background:linear-gradient(135deg,${THEME.accent},${THEME.accent2},${THEME.accent3});border:none;color:white;border-radius:20px;padding:14px;cursor:pointer;font-weight:700;font-size:14px;transition:all 0.2s;box-shadow:0 4px 15px rgba(139,92,246,0.3)}.eni-create-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(139,92,246,0.5)}.eni-create-btn:disabled{opacity:0.5;transform:none}.eni-new-desc{background:${THEME.card};border:1px solid ${THEME.border};color:white;padding:14px;border-radius:20px;outline:none;font-family:inherit;font-size:13px;resize:vertical;transition:all 0.2s}.eni-new-desc:focus{border-color:${THEME.accent};box-shadow:0 0 0 3px rgba(139,92,246,0.15);transform:translateY(-1px)}.eni-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.6s linear}.eni-toast{position:fixed;bottom:100px;right:30px;background:rgba(0,0,0,0.95);backdrop-filter:blur(12px);padding:12px 20px;border-radius:16px;font-size:13px;font-weight:500;z-index:10000000;animation:slideUp 0.3s ease;pointer-events:none;border-left:3px solid;box-shadow:0 10px 25px -5px rgba(0,0,0,0.3)}.eni-toast.success{border-left-color:#10b981;background:linear-gradient(135deg,rgba(0,0,0,0.95),rgba(16,185,129,0.1))}.eni-toast.error{border-left-color:#ef4444;background:linear-gradient(135deg,rgba(0,0,0,0.95),rgba(239,68,68,0.1))}.eni-toast.hide{opacity:0;transform:translateY(20px);transition:all 0.3s}@keyframes spin{to{transform:rotate(360deg)}}@keyframes slideIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}`;let s=document.getElementById('eni-s');if(!s){s=document.createElement('style');s.id='eni-s';document.head.appendChild(s)}s.textContent=css;if(ST.m){r.classList.add('mini');r.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:30px">🤖</div>';r.onclick=()=>{ST.m=false;ui()};return}r.classList.remove('mini');r.onclick=null;r.innerHTML=`
-<div class="eni-header">
-<div class="eni-dots">
-<div class="eni-dot close" onclick="document.getElementById('eni-chat-root').remove()"></div>
-<div class="eni-dot minimize" onclick="window.enM()"></div>
-<div class="eni-dot maximize"></div>
-</div>
-<span class="eni-logo">✦ ENI AI ✦</span>
-</div>
-<div class="eni-content">
-${!ready?`<div style="text-align:center;padding:60px 20px"><div style="font-size:56px;margin-bottom:16px;animation:pulse 2s infinite">🎯</div><p style="font-size:15px;font-weight:600;margin-bottom:8px">Aguardando Conexão</p><p style="font-size:12px;color:${THEME.sub}">Acesse <span style="color:${THEME.accent};font-weight:600">lovable.dev</span> para capturar token</p><p style="font-size:11px;color:${THEME.sub};margin-top:12px">O token será detectado automaticamente</p></div>`:`
-<div class="eni-tabs">
-<div class="eni-tab ${ST.view==='chat'?'active':''}" onclick="window.enV('chat')">💬 CHAT</div>
-<div class="eni-tab ${ST.view==='new'?'active':''}" onclick="window.enV('new')">✨ NOVO</div>
-</div>
-${ST.view==='chat'?`
-<div class="eni-badge">📁 ${ST.p?ST.p.slice(0,10)+'...':'Projeto'}</div>
-<div class="eni-messages" id="eni-msgs"></div>
-<div class="eni-input-area">
-<textarea id="eni-in" placeholder="Digite sua mensagem..." rows="2"></textarea>
-<div style="display:flex;justify-content:flex-end">
-<button class="eni-send-btn" id="eni-send-btn">📤 Enviar</button>
-</div>
-</div>
-`:`
-<div class="eni-badge">🏢 ${ST.w?ST.w.slice(0,10)+'...':'Workspace'}</div>
-<div style="display:flex;flex-direction:column;gap:16px">
-<textarea class="eni-new-desc" id="eni-new-desc" rows="4" placeholder="🎨 Descreva seu projeto...&#10;Ex: Dashboard moderno com gráficos animados e tema escuro"></textarea>
-<button class="eni-create-btn" id="eni-create-btn">🚀 Criar Projeto</button>
-</div>
-`}
-</div>`;updateMessages();attachEvents()}
-function attachEvents(){if(ST.view==='chat'){const btn=document.getElementById('eni-send-btn');const ta=document.getElementById('eni-in');if(btn&&!btn._hasListener){btn._hasListener=true;btn.onclick=async()=>{const msg=ta?.value.trim();if(!msg){showToast('✏️ Digite uma mensagem','error');return}if(!ST.p){showToast('⚠️ Projeto não detectado','error');return}ST.msgs.push({r:'u',t:msg});ta.value='';updateMessages();btn.disabled=true;btn.innerHTML='<span class="eni-spinner"></span> Enviando';const res=await sendMessageToLovable(ST.t,ST.p,msg);btn.disabled=false;btn.innerHTML='📤 Enviar';if(res.success){showToast(res.message||'✅ Mensagem enviada!','success');ST.msgs.push({r:'bt',t:'✨ Mensagem processada com sucesso!'});updateMessages();setTimeout(()=>{const idx=ST.msgs.findIndex(m=>m.t==='✨ Mensagem processada com sucesso!');if(idx!==-1){ST.msgs.splice(idx,1);updateMessages()}},2500)}else{showToast(res.error||'❌ Erro ao enviar','error')}};if(ta)ta.onkeypress=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();btn.onclick()}}}}if(ST.view==='new'){const btn=document.getElementById('eni-create-btn');if(btn&&!btn._hasListener){btn._hasListener=true;btn.onclick=async()=>{const desc=document.getElementById('eni-new-desc')?.value;if(!desc){showToast('📝 Descreva seu projeto','error');return}if(!ST.w){showToast('⚠️ Workspace não detectado','error');return}btn.disabled=true;btn.innerHTML='<span class="eni-spinner"></span> Criando...';const res=await createNewProject(ST.t,ST.w,desc);if(res.success){showToast('🎉 Projeto criado com sucesso!','success');setTimeout(()=>{window.location.href=res.link},800)}else{showToast(res.error||'❌ Falha na criação','error');btn.disabled=false;btn.innerHTML='🚀 Criar Projeto'}}}}}
-function makeDraggable(e){let x,y,a=false;const s=t=>{const p=t.touches?t.touches[0]:t;if(!t.target.closest('.eni-header'))return;a=true;x=p.clientX-e.offsetLeft;y=p.clientY-e.offsetTop;e.style.transition='none'};const m=t=>{if(!a)return;const p=t.touches?t.touches[0]:t;let l=p.clientX-x,top=p.clientY-y;l=Math.max(0,Math.min(window.innerWidth-e.offsetWidth,l));top=Math.max(0,Math.min(window.innerHeight-e.offsetHeight,top));e.style.left=l+'px';e.style.top=top+'px';e.style.right='auto';e.style.bottom='auto'};const u=()=>{a=false;e.style.transition=''};document.addEventListener('mousemove',m);document.addEventListener('touchmove',m,{passive:false});document.addEventListener('mousedown',s);document.addEventListener('touchstart',s,{passive:true});document.addEventListener('mouseup',u);document.addEventListener('touchend',u)}
-window.enM=()=>{ST.m=true;ui()};
-window.enV=(v)=>{ST.view=v;ui()};
-ui()})();
+    if(document.getElementById('eni-chat-root')) return;
+    const ST = {
+        t: null, w: null, p: null, m: false, msgs: [], view: 'chat',
+        supabaseUrl: 'https://ypdlnkrgjwsczaulkcxo.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwZGxua3JnandzY3phdWxrY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjA4MzQsImV4cCI6MjA4OTA5NjgzNH0.UgQ7-EeKeDV6ANQ27SFhnH-YSz6VWn3KqWZGO8qDpnQ'
+    };
+    const THEME = {
+        bg: 'rgba(10, 12, 18, 0.95)',
+        card: 'rgba(30, 35, 50, 0.6)',
+        accent: '#8b5cf6',
+        accent2: '#d946ef',
+        accent3: '#06b6d4',
+        text: '#f8fafc',
+        sub: '#94a3b8',
+        border: 'rgba(255, 255, 255, 0.1)',
+        glass: 'backdrop-filter: blur(24px) saturate(180%);'
+    };
+    function intercept(t, w, p) {
+        let c = false;
+        if (t && t.startsWith('eyJ') && t !== ST.t) { ST.t = t; c = true; }
+        if (w && w !== ST.w) { ST.w = w; c = true; }
+        if (p && /^[0-9a-f-]{36}$/i.test(p) && p !== ST.p) { ST.p = p; c = true; }
+        if (c) ui();
+    }
+    const oF = window.fetch;
+    window.fetch = function(...a) {
+        const u = typeof a[0] === 'string' ? a[0] : a[0].url;
+        const w = (u.match(/\/workspaces\/([a-z0-9_-]+)/i) || [])[1];
+        const p = (u.match(/\/projects\/([0-9a-f-]{36})/i) || [])[1];
+        const h = a[1]?.headers;
+        let t = null;
+        if (h instanceof Headers) t = h.get('authorization');
+        else if (h) t = h['Authorization'] || h['authorization'];
+        if (t) t = t.replace('Bearer ', '');
+        intercept(t, w, p);
+        return oF.apply(this, a);
+    };
+    async function apiReq(path, body) {
+        try {
+            const res = await fetch(`${ST.supabaseUrl}/functions/v1/${path}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': ST.anonKey,
+                    'Authorization': `Bearer ${ST.anonKey}`
+                },
+                body: JSON.stringify(body)
+            });
+            return await res.json();
+        } catch (e) {
+            return { success: false, error: 'Erro de conexão' };
+        }
+    }
+    function showToast(m, type) {
+        const t = document.createElement('div');
+        t.className = `eni-toast ${type}`;
+        t.innerHTML = `<span>${m}</span>`;
+        document.body.appendChild(t);
+        setTimeout(() => t.classList.add('hide'), 2500);
+        setTimeout(() => t.remove(), 3000);
+    }
+    function updateMessages() {
+        const c = document.getElementById('eni-msgs');
+        if (!c) return;
+        c.innerHTML = '';
+        ST.msgs.forEach(m => {
+            const g = document.createElement('div');
+            g.className = `eni-bubble ${m.r === 'u' ? 'eni-user' : 'eni-bot'}`;
+            g.innerHTML = `<div class="bubble-content">${escapeHtml(m.t)}</div>`;
+            c.appendChild(g);
+        });
+        c.scrollTop = c.scrollHeight;
+    }
+    function escapeHtml(s) {
+        return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
+    function ui() {
+        let r = document.getElementById('eni-chat-root');
+        if (!r) {
+            r = document.createElement('div');
+            r.id = 'eni-chat-root';
+            document.body.appendChild(r);
+            makeDraggable(r);
+        }
+        const ready = ST.t && (ST.p || ST.w);
+        const css = `
+            #eni-chat-root {
+                position: fixed; bottom: 24px; right: 24px; width: 400px; max-height: 80vh;
+                background: ${THEME.bg}; ${THEME.glass} border: 1px solid ${THEME.border};
+                border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                z-index: 9999999; display: flex; flex-direction: column;
+                font-family: 'Inter', system-ui, sans-serif; color: ${THEME.text};
+                overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            #eni-chat-root.mini {
+                width: 60px; height: 60px; border-radius: 30px; cursor: pointer;
+                background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accent2});
+            }
+            .eni-header {
+                padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+                cursor: move; border-bottom: 1px solid ${THEME.border}; background: rgba(255,255,255,0.02);
+            }
+            .eni-ctrls { display: flex; gap: 8px; }
+            .eni-btn {
+                width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.2s;
+            }
+            .eni-btn.close { background: #ff5f57; }
+            .eni-btn.mini { background: #febc2e; }
+            .eni-btn:hover { transform: scale(1.2); filter: brightness(1.2); }
+            .eni-logo {
+                font-size: 12px; font-weight: 800; letter-spacing: 1.5px;
+                background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accent3});
+                -webkit-background-clip: text; color: transparent;
+            }
+            .eni-body { flex: 1; display: flex; flex-direction: column; padding: 20px; overflow: hidden; }
+            .eni-tabs { display: flex; gap: 20px; margin-bottom: 15px; border-bottom: 1px solid ${THEME.border}; }
+            .eni-tab {
+                padding: 8px 0; font-size: 12px; font-weight: 700; cursor: pointer; opacity: 0.5; transition: 0.3s;
+            }
+            .eni-tab.active { opacity: 1; color: ${THEME.accent}; border-bottom: 2px solid ${THEME.accent}; }
+            .eni-msgs {
+                flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+                margin-bottom: 15px; padding-right: 5px; min-height: 200px;
+            }
+            .eni-msgs::-webkit-scrollbar { width: 4px; }
+            .eni-msgs::-webkit-scrollbar-thumb { background: ${THEME.accent}; border-radius: 10px; }
+            .eni-bubble {
+                padding: 10px 14px; border-radius: 16px; font-size: 13px; max-width: 85%; line-height: 1.4;
+            }
+            .eni-user { background: ${THEME.accent}; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+            .eni-bot { background: ${THEME.card}; border: 1px solid ${THEME.border}; align-self: flex-start; border-bottom-left-radius: 4px; }
+            .eni-input-wrap {
+                background: ${THEME.card}; border: 1px solid ${THEME.border}; border-radius: 16px;
+                padding: 10px; transition: 0.3s;
+            }
+            .eni-input-wrap:focus-within { border-color: ${THEME.accent}; box-shadow: 0 0 0 2px rgba(139,92,246,0.2); }
+            .eni-input-wrap textarea {
+                width: 100%; background: none; border: none; color: white; resize: none;
+                outline: none; font-size: 13px; font-family: inherit; height: 40px;
+            }
+            .eni-action-btn {
+                width: 100%; margin-top: 10px; padding: 10px; border-radius: 12px; border: none;
+                background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accent2});
+                color: white; font-weight: 700; cursor: pointer; transition: 0.3s;
+            }
+            .eni-action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(139,92,246,0.4); }
+            .eni-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+            .eni-toast {
+                position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; border-radius: 12px;
+                background: #1a1d23; color: white; font-size: 13px; z-index: 10000000;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-left: 4px solid ${THEME.accent};
+            }
+            .eni-toast.error { border-left-color: #ef4444; }
+            .eni-toast.hide { opacity: 0; transform: translateY(20px); transition: 0.3s; }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            .loader { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+        `;
+        let s = document.getElementById('eni-style');
+        if (!s) { s = document.createElement('style'); s.id = 'eni-style'; document.head.appendChild(s); }
+        s.textContent = css;
+
+        if (ST.m) {
+            r.classList.add('mini');
+            r.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🤖</div>';
+            r.onclick = () => { ST.m = false; ui(); };
+            return;
+        }
+        r.classList.remove('mini');
+        r.onclick = null;
+        r.innerHTML = `
+            <div class="eni-header">
+                <div class="eni-ctrls">
+                    <div class="eni-btn close" onclick="document.getElementById('eni-chat-root').remove()"></div>
+                    <div class="eni-btn mini" onclick="event.stopPropagation(); window.enM()"></div>
+                </div>
+                <span class="eni-logo">ENI AI</span>
+                <div style="width:28px"></div>
+            </div>
+            <div class="eni-body">
+                ${!ready ? `
+                    <div style="text-align:center;padding:40px 10px">
+                        <div style="font-size:48px;margin-bottom:15px">⚡</div>
+                        <p style="font-weight:700;margin-bottom:5px">Aguardando Lovable</p>
+                        <p style="font-size:12px;color:${THEME.sub}">Abra um projeto no lovable.dev</p>
+                    </div>
+                ` : `
+                    <div class="eni-tabs">
+                        <div class="eni-tab ${ST.view === 'chat' ? 'active' : ''}" onclick="window.enV('chat')">CHAT</div>
+                        <div class="eni-tab ${ST.view === 'new' ? 'active' : ''}" onclick="window.enV('new')">NOVO</div>
+                    </div>
+                    ${ST.view === 'chat' ? `
+                        <div class="eni-msgs" id="eni-msgs"></div>
+                        <div class="eni-input-wrap">
+                            <textarea id="eni-in" placeholder="Como posso ajudar?"></textarea>
+                        </div>
+                        <button class="eni-action-btn" id="eni-send">Enviar Mensagem</button>
+                    ` : `
+                        <div style="display:flex;flex-direction:column;gap:12px">
+                            <div class="eni-input-wrap">
+                                <textarea id="eni-desc" style="height:80px" placeholder="Descreva o novo projeto..."></textarea>
+                            </div>
+                            <button class="eni-action-btn" id="eni-create">Criar Projeto</button>
+                        </div>
+                    `}
+                `}
+            </div>
+        `;
+        updateMessages();
+        attachEvents();
+    }
+    function attachEvents() {
+        const sendBtn = document.getElementById('eni-send');
+        const createBtn = document.getElementById('eni-create');
+        if (sendBtn) {
+            sendBtn.onclick = async () => {
+                const ta = document.getElementById('eni-in');
+                const msg = ta.value.trim();
+                if (!msg || !ST.p) return showToast(ST.p ? 'Digite algo' : 'Projeto não detectado', 'error');
+                ST.msgs.push({ r: 'u', t: msg });
+                ta.value = '';
+                updateMessages();
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<span class="loader"></span>';
+                const res = await apiReq('send-message', { token: ST.t, projectId: ST.p, message: msg });
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = 'Enviar Mensagem';
+                if (res.success) {
+                    showToast('Enviado!', 'success');
+                    ST.msgs.push({ r: 'b', t: 'Solicitação processada!' });
+                    updateMessages();
+                } else showToast(res.error || 'Erro', 'error');
+            };
+        }
+        if (createBtn) {
+            createBtn.onclick = async () => {
+                const desc = document.getElementById('eni-desc').value.trim();
+                if (!desc || !ST.w) return showToast(ST.w ? 'Descreva o projeto' : 'Workspace não detectado', 'error');
+                createBtn.disabled = true;
+                createBtn.innerHTML = '<span class="loader"></span>';
+                const res = await apiReq('create-new', { token: ST.t, workspaceId: ST.w, message: desc });
+                if (res.success) {
+                    showToast('Criado!', 'success');
+                    if (res.link) setTimeout(() => window.location.href = res.link, 1000);
+                } else {
+                    showToast(res.error || 'Erro', 'error');
+                    createBtn.disabled = false;
+                    createBtn.innerHTML = 'Criar Projeto';
+                }
+            };
+        }
+    }
+    function makeDraggable(e) {
+        let x, y, a = false;
+        const s = t => {
+            const p = t.touches ? t.touches[0] : t;
+            if (!t.target.closest('.eni-header')) return;
+            a = true; x = p.clientX - e.offsetLeft; y = p.clientY - e.offsetTop;
+            e.style.transition = 'none';
+        };
+        const m = t => {
+            if (!a) return;
+            const p = t.touches ? t.touches[0] : t;
+            e.style.left = (p.clientX - x) + 'px';
+            e.style.top = (p.clientY - y) + 'px';
+            e.style.right = 'auto'; e.style.bottom = 'auto';
+        };
+        const u = () => { a = false; e.style.transition = ''; };
+        document.addEventListener('mousemove', m); document.addEventListener('mousedown', s); document.addEventListener('mouseup', u);
+    }
+    window.enM = () => { ST.m = true; ui(); };
+    window.enV = (v) => { ST.view = v; ui(); };
+    ui();
+})();
